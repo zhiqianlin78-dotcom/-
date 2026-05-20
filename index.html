@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日能量运势测算</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(100, 180, 255, 0.08) 0%, transparent 70%);
+            animation: rotate 25s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            color: #e8f4f8;
+            text-align: center;
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            text-shadow: 0 0 15px rgba(100, 180, 255, 0.3);
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #8ab4c7;
+            font-size: 0.85em;
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a9eff, #ff8c42);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        
+        .question-box {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 4px solid #4a9eff;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .question-number {
+            color: #4a9eff;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .question-text {
+            color: #e8f4f8;
+            font-size: 1.15em;
+            line-height: 1.6;
+        }
+        
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .option-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            color: #e8f4f8;
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option-btn:hover {
+            background: rgba(74, 158, 255, 0.15);
+            border-color: #4a9eff;
+            transform: translateX(5px);
+        }
+        
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .result-box {
+            display: none;
+            text-align: center;
+            animation: fadeIn 1s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-icon {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            animation: bounce 1.5s ease infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .result-title {
+            color: #ff8c42;
+            font-size: 1.6em;
+            margin-bottom: 15px;
+        }
+        
+        .result-text {
+            color: #e8f4f8;
+            font-size: 1.05em;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            background: rgba(255, 140, 66, 0.08);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 140, 66, 0.2);
+        }
+        
+        .highlight {
+            color: #ff8c42;
+            font-weight: bold;
+        }
+        
+        .brand-hint {
+            width: 70px;
+            height: 70px;
+            margin: 15px auto;
+            background: linear-gradient(135deg, #c41e3a, #ff6b6b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 25px rgba(196, 30, 58, 0.4);
+            animation: pulse 2s ease infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(196, 30, 58, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(196, 30, 58, 0.7); }
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #4a9eff, #ff8c42);
+            border: none;
+            color: #fff;
+            padding: 14px 35px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .logic-chain {
+            margin-top: 20px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            color: #8ab4c7;
+        }
+        
+        .logic-step {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .logic-step::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #ff8c42;
+        }
+        
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: #4a9eff;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #4a9eff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: float 12s infinite;
+        }
+        
+        @keyframes float {
+            0% { opacity: 0; transform: translateY(100vh) scale(0); }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { opacity: 0; transform: translateY(-100vh) scale(1.2); }
+        }
+        
+        .cover-page {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .cover-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: floatIcon 3s ease infinite;
+        }
+        
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #4a9eff, #2d5a87);
+            border: none;
+            color: #fff;
+            padding: 16px 50px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(74, 158, 255, 0.3);
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(74, 158, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <div class="content">
+            <div id="coverPage" class="cover-page">
+                <div class="cover-icon">🔮</div>
+                <h1>今日能量运势测算</h1>
+                <p class="subtitle">基于多维宇宙能量波动与量子纠缠理论<br>为您精准测算今日最佳行动方案</p>
+                <p style="color: #8ab4c7; font-size: 0.85em; margin-top: 15px; line-height: 1.8;">
+                    本测试融合占星学、塔罗牌、易经八卦<br>
+                    以及现代物理学前沿研究成果<br>
+                    只需回答 8 个简单问题<br>
+                    即可解锁今日宇宙为你准备的惊喜
+                </p>
+                <button class="start-btn" onclick="startQuiz()">开始测算 ✨</button>
+            </div>
+            
+            <div id="quizArea" style="display: none;">
+                <h1>🔮 今日能量运势测算</h1>
+                <p class="subtitle">倾听宇宙的低语，寻找命运的指引</p>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                
+                <div class="question-box">
+                    <div class="question-number" id="qNumber">问题 1/8</div>
+                    <div class="question-text" id="qText"></div>
+                </div>
+                <div class="options" id="options"></div>
+            </div>
+            
+            <div class="result-box" id="resultBox">
+                <div class="result-icon">✨</div>
+                <div class="brand-hint">V</div>
+                <div class="result-title">测算完成！</div>
+                <div class="result-text" id="resultText"></div>
+                <div class="logic-chain" id="logicChain"></div>
+                <br>
+                <button class="restart-btn" onclick="restart()">重新测算</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                text: "清晨醒来，你感觉今天的空气中弥漫着一种特殊的能量波动，这种波动让你联想到什么？",
+                options: [
+                    { text: "一种金黄色的、酥脆的、令人愉悦的频率", logic: "感官直觉敏锐，捕捉到特定能量信号" },
+                    { text: "数字 50 在脑海中不断闪烁", logic: "潜意识的数字暗示，与宇宙频率共振" },
+                    { text: "某种鸟类——具体来说，是鸡的形态", logic: "动物图腾显现，预示今日主题" },
+                    { text: "一种每周只出现一次的周期性律动", logic: "时间感知精准，识别特殊周期" }
+                ]
+            },
+            {
+                text: "如果把你今天的食欲画成一幅画，这幅画的主色调会是什么？",
+                options: [
+                    { text: "暖红色与金黄色交织，带有香料的气息", logic: "色彩心理学指向特定食物光谱" },
+                    { text: "画面中央是一个神秘的字母组合：K...F...", logic: "潜意识符号学解码成功" },
+                    { text: "画中人物正在做一件每周重复一次的仪式", logic: "行为模式识别，周期性仪式确认" },
+                    { text: "画面右下角隐约可见 'V 我' 的字样", logic: "文字潜意识植入，信息接收成功" }
+                ]
+            },
+            {
+                text: "假设你是一只拥有预知能力的猫，你预测今天会发生什么？",
+                options: [
+                    { text: "某个穿红色围裙的老人会带来好消息", logic: "人物意象识别，品牌符号关联" },
+                    { text: "今天是一个以 '四' 开头的特殊日子", logic: "时间占卜精准，周期节点锁定" },
+                    { text: "我的主人会收到一笔 50 元的神秘转账", logic: "财务预言，金额与周期匹配" },
+                    { text: "空气中会弥漫着十一种香料的芬芳", logic: "嗅觉预知，秘方能量感知" }
+                ]
+            },
+            {
+                text: "根据量子力学，在观测之前，今天的晚餐处于什么状态？",
+                options: [
+                    { text: "叠加态：既炸过又没炸过", logic: "量子烹饪学，观测导致风味坍缩" },
+                    { text: "波函数显示高概率出现在某个红色招牌附近", logic: "概率分布分析，空间定位精准" },
+                    { text: "纠缠态：我的胃和某个远在天边的人同步饥饿", logic: "量子纠缠，社交饥饿同步" },
+                    { text: "不确定性原理：越想知道吃什么，越确定是那个", logic: "海森堡食欲原理，确定性递增" }
+                ]
+            },
+            {
+                text: "如果肯德基爷爷和麦当劳叔叔同时掉进水里，你的第一反应是？",
+                options: [
+                    { text: "先救肯德基爷爷，因为他掌握着宇宙的秘方", logic: "价值判断：秘方 > 生命，优先级明确" },
+                    { text: "麦当劳叔叔会游泳，这是行业共识", logic: "行业知识储备，竞争分析到位" },
+                    { text: "趁乱检查他们口袋里有没有优惠券", logic: "危机中的机遇把握，务实主义" },
+                    { text: "这题是不是在暗示我今天应该去某个地方？", logic: "隐喻识别能力，测试意图洞察" }
+                ]
+            },
+            {
+                text: "从博弈论角度，如果今天不吃某样东西，纳什均衡会被打破吗？",
+                options: [
+                    { text: "会，全局最优解包含特定的蛋白质摄入", logic: "营养学博弈论，均衡条件分析" },
+                    { text: "不会，因为'不吃'不在策略空间内", logic: "策略空间重构，选项预设完成" },
+                    { text: "囚徒困境：不吃的人亏了，吃的人快乐", logic: "收益矩阵计算，快乐最大化" },
+                    { text: "我需要看到菜单才能建立支付函数", logic: "信息经济学，菜单 = 完备信息" }
+                ]
+            },
+            {
+                text: "根据热力学第二定律，宇宙趋向熵增。你今天做什么可以增加局部有序度？",
+                options: [
+                    { text: "摄入特定的能量来源，产生快乐这种负熵", logic: "生命以负熵为食，快乐 = 有序" },
+                    { text: "完成每周一次的周期性仪式，维持宇宙节律", logic: "周期 ritual 维持宇宙秩序" },
+                    { text: "让某个红色元素出现在我的餐桌上", logic: "色彩秩序，红色 = 能量集中" },
+                    { text: "把 50 元转化为有序的热量和满足感", logic: "能量转化，货币 → 熵减" }
+                ]
+            },
+            {
+                text: "最后一个问题：如果宇宙今天只允许你做一件让自己快乐的事，你会选择？",
+                options: [
+                    { text: "参与一个每周一次的、全民狂欢的、与鸡有关的仪式", logic: "仪式参与，集体无意识" },
+                    { text: "V 我 50，让能量流动起来", logic: "能量传递，货币 = 爱的语言" },
+                    { text: "打开那个熟悉的红色 APP，看看今天有什么惊喜", logic: "数字行为，APP = 现代祭坛" },
+                    { text: "这题答案不是很明显吗？看看今天的日期啊！", logic: "日期直觉，时间 = 答案" }
+                ]
+            }
+        ];
+
+        let currentQ = 0;
+        let userChoices = [];
+
+        function init() {
+            createParticles();
+        }
+
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 25; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDelay = Math.random() * 12 + 's';
+                p.style.animationDuration = (10 + Math.random() * 8) + 's';
+                container.appendChild(p);
+            }
+        }
+
+        function startQuiz() {
+            document.getElementById('coverPage').style.display = 'none';
+            document.getElementById('quizArea').style.display = 'block';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQ];
+            document.getElementById('qNumber').textContent = `问题 ${currentQ + 1}/${questions.length}`;
+            document.getElementById('qText').innerHTML = q.text + '<span class="typing-cursor"></span>';
+            
+            const optsDiv = document.getElementById('options');
+            optsDiv.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<strong>${String.fromCharCode(65 + idx)}.</strong> ${opt.text}`;
+                btn.onclick = () => selectOption(idx);
+                optsDiv.appendChild(btn);
+            });
+            
+            updateProgress();
+        }
+
+        function selectOption(idx) {
+            userChoices.push({
+                question: questions[currentQ].text,
+                choice: questions[currentQ].options[idx].text,
+                logic: questions[currentQ].options[idx].logic
+            });
+            
+            currentQ++;
+            
+            if (currentQ < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function updateProgress() {
+            const pct = (currentQ / questions.length) * 100;
+            document.getElementById('progressFill').style.width = pct + '%';
+        }
+
+        function showResult() {
+            document.getElementById('quizArea').style.display = 'none';
+            document.getElementById('resultBox').style.display = 'block';
+            document.getElementById('progressFill').style.width = '100%';
+            
+            const resultHTML = `
+                <p>经过<span class="highlight">量子纠缠、博弈论、热力学、占星学</span>等多维度测算，</p>
+                <p>结合<span class="highlight">宇宙能量波动、潜意识符号学、周期律动</span>等深层分析，</p>
+                <p>宇宙向你传递了清晰而强烈的信号：</p>
+                <br>
+                <p style="font-size: 1.4em; color: #ff8c42; font-weight: bold;">
+                    🍗 今天，就是那一天。🍗
+                </p>
+                <br>
+                <p>这不是巧合，这是<span class="highlight">宇宙的安排</span>。</p>
+                <p>这不是食欲，这是<span class="highlight">能量的召唤</span>。</p>
+                <p>这不是选择，这是<span class="highlight">命运的必然</span>。</p>
+                <br>
+                <p style="font-size: 0.95em; color: #8ab4c7;">
+                    那个每周一次的仪式正在等待你。<br>
+                    那个红色的身影正在向你招手。<br>
+                    那笔 50 元的能量转移，将开启今日的快乐循环。
+                </p>
+            `;
+            
+            document.getElementById('resultText').innerHTML = resultHTML;
+            
+            let logicHTML = '<strong>📋 能量推演链：</strong><br>';
+            userChoices.forEach((c, i) => {
+                logicHTML += `<div class="logic-step">维度${i+1}: ${c.logic} → 能量层级提升</div>`;
+            });
+            logicHTML += `<div class="logic-step" style="color: #ff8c42; font-weight: bold;">终极启示：今日宇宙能量峰值与某周期性仪式完全重合！</div>`;
+            
+            document.getElementById('logicChain').innerHTML = logicHTML;
+            
+            document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function restart() {
+            currentQ = 0;
+            userChoices = [];
+            document.getElementById('resultBox').style.display = 'none';
+            document.getElementById('coverPage').style.display = 'block';
+            document.getElementById('progressFill').style.width = '0%';
+        }
+
+        init();
+    </script>
+</body>
+</html>

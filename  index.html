@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人格测试·深度版 2.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+XiaoWei&display=swap');
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --card: #1e1e1e;
+    --accent: #e8a020;
+    --accent2: #c0392b;
+    --text: #f0ede8;
+    --muted: #888;
+    --border: #2a2a2a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Serif SC', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(232,160,32,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(192,57,43,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+
+  .scene {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-badge {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .step-badge::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h1 {
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .question {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 36px;
+    color: var(--text);
+  }
+
+  .question .highlight {
+    color: var(--accent);
+  }
+
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .choice-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 16px 20px;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    border-radius: 3px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .choice-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .choice-btn:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+  }
+
+  .choice-btn:hover::before { opacity: 0.08; }
+
+  .choice-label {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s;
+  }
+
+  .choice-btn:hover .choice-label {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .choice-text { position: relative; z-index: 1; }
+
+  /* TIMER BAR */
+  .timer-container {
+    margin-bottom: 28px;
+  }
+
+  .timer-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .timer-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
+
+  .timer-fill.danger {
+    background: var(--accent2);
+    animation: pulse 0.3s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* NONSENSE PHASE */
+  .nonsense-display {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 56px;
+    text-align: center;
+    padding: 24px 0;
+    animation: glitch 2s infinite;
+    color: var(--accent);
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @keyframes glitch {
+    0%, 90%, 100% { transform: none; filter: none; }
+    91% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+    93% { transform: translate(2px, -1px); filter: hue-rotate(-90deg); }
+    95% { transform: translate(-1px, 2px); filter: none; }
+  }
+
+  .nonsense-sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+
+  .next-btn {
+    display: block;
+    width: 100%;
+    margin-top: 32px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none;
+    color: #fff;
+    padding: 16px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+
+  .next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(232,160,32,0.3);
+  }
+
+  /* FINAL QUESTION */
+  .final-question {
+    text-align: center;
+  }
+
+  .final-question .emoji-display {
+    font-size: 64px;
+    margin-bottom: 20px;
+    animation: bounce 1s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .final-choices {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .yes-btn {
+    padding: 18px 40px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none;
+    color: white;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 2px;
+  }
+
+  .yes-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(232,160,32,0.4);
+  }
+
+  .no-btn {
+    padding: 18px 40px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: fixed;
+    letter-spacing: 2px;
+  }
+
+  /* FINAL PAGE */
+  .final-page {
+    text-align: center;
+    animation: celebration 0.5s ease;
+  }
+
+  @keyframes celebration {
+    0% { transform: scale(0.8); opacity: 0; }
+    60% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .final-page .big-emoji {
+    font-size: 80px;
+    margin-bottom: 24px;
+    display: block;
+    animation: spin 0.6s ease;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(-20deg) scale(0.5); }
+    to { transform: rotate(0) scale(1); }
+  }
+
+  .final-page h2 {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .final-page p {
+    color: var(--muted);
+    line-height: 1.8;
+    font-size: 16px;
+  }
+
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    top: -10px;
+    border-radius: 1px;
+    animation: confettiFall linear forwards;
+  }
+
+  @keyframes confettiFall {
+    to {
+      transform: translateY(110vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* SLIDE TRANSITION */
+  .slide-out {
+    animation: slideOut 0.3s ease forwards;
+  }
+
+  @keyframes slideOut {
+    to { opacity: 0; transform: translateX(-30px); }
+  }
+
+  .slide-in {
+    animation: slideIn 0.4s ease forwards;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* SHAKE */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  .shake { animation: shake 0.4s ease; }
+
+  .warning-text {
+    color: var(--accent2);
+    font-size: 12px;
+    margin-top: 12px;
+    letter-spacing: 1px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .warning-text.show { opacity: 1; }
+
+  /* Progress dots */
+  .progress-dots {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+
+  .dot.active { background: var(--accent); transform: scale(1.3); }
+  .dot.done { background: var(--accent2); }
+
+  .score-display {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="confetti-container" id="confettiContainer"></div>
+
+<div class="scene">
+  <div class="card" id="mainCard">
+    <!-- Content injected by JS -->
+  </div>
+</div>
+
+<script>
+const card = document.getElementById('mainCard');
+let currentStep = 0;
+let score = 0;
+let timerInterval = null;
+let timerSeconds = 0;
+let timerMax = 0;
+let noBtnMoved = 0;
+
+// ===================== STEP DEFINITIONS =====================
+
+const phases = [
+  { type: 'intro' },
+  
+  // Phase 1: Weird Questions
+  { type: 'question', index: 0 },
+  { type: 'question', index: 1 },
+  { type: 'question', index: 2 },
+  { type: 'question', index: 3 },
+  
+  // Phase 2: Nonsense
+  { type: 'nonsense' },
+  
+  // Phase 3: Rapid Fire
+  { type: 'rapid', index: 0 },
+  { type: 'rapid', index: 1 },
+  { type: 'rapid', index: 2 },
+  { type: 'rapid', index: 3 },
+  
+  // Final
+  { type: 'final' },
+  { type: 'end' },
+];
+
+// ===================== WEIRD QUESTIONS =====================
+
+const weirdQuestions = [
+  {
+    q: '如果你的影子突然开始比你慢两秒钟，你会先告诉谁？',
+    options: ['直接打给妈妈', '发朋友圈记录一下', '假装没看见，继续走', '拿手机拍下来'],
+    scores: [2, 1, 3, 2],
+  },
+  {
+    q: '一个陌生人送给你一把没有锁的锁，你会怎么做？',
+    options: ['扔掉，占地方', '收好，说不定有用', '研究它是怎么工作的', '送给别的陌生人'],
+    scores: [1, 3, 2, 2],
+  },
+  {
+    q: '你更害怕哪种情况——全世界的椅子消失，还是所有人都记不住你的名字？',
+    options: ['椅子消失，我站不住', '记不住名字，太孤独了', '两个都还好吧', '其实我不需要椅子'],
+    scores: [2, 3, 1, 1],
+  },
+  {
+    q: '如果你的手机突然只能接收别人发的消息，但无法发出任何消息，你第一反应是？',
+    options: ['换手机', '重启试试', '直接当面找人', '好像也没什么损失'],
+    scores: [2, 1, 3, 2],
+  },
+];
+
+// ===================== NONSENSE DATA =====================
+
+const nonsenseItems = ['🦆', '∞', '7', '◈', '𝕏', '⟁', '☉', '⚙'];
+
+// ===================== RAPID FIRE =====================
+
+const rapidQuestions = [
+  {
+    q: '猫还是狗？',
+    options: ['猫', '狗'],
+    timeLimit: 4,
+  },
+  {
+    q: '早起还是熬夜？',
+    options: ['早起', '熬夜'],
+    timeLimit: 3,
+  },
+  {
+    q: '热的还是冷的？',
+    options: ['热的', '冷的'],
+    timeLimit: 3,
+  },
+  {
+    q: '你愿意请我吃疯狂星期四吗？',
+    options: ['愿意 🍗', '不愿意'],
+    timeLimit: 99,
+    isFinal: true,
+  },
+];
+
+// ===================== RENDER FUNCTIONS =====================
+
+function render(html, animate = true) {
+  if (animate) {
+    card.classList.add('slide-out');
+    setTimeout(() => {
+      card.classList.remove('slide-out');
+      card.innerHTML = html;
+      card.classList.add('slide-in');
+      setTimeout(() => card.classList.remove('slide-in'), 400);
+    }, 250);
+  } else {
+    card.innerHTML = html;
+  }
+}
+
+function buildProgressDots(active) {
+  const total = 9;
+  let dots = '<div class="progress-dots">';
+  for (let i = 0; i < total; i++) {
+    if (i < active) dots += '<div class="dot done"></div>';
+    else if (i === active) dots += '<div class="dot active"></div>';
+    else dots += '<div class="dot"></div>';
+  }
+  dots += '</div>';
+  return dots;
+}
+
+// ===================== INTRO =====================
+
+function renderIntro() {
+  render(`
+    <div style="text-align:center">
+      <h1>深度人格测评</h1>
+      <div style="font-size:52px;margin:24px 0;animation:bounce 1.2s infinite">🧠</div>
+      <div class="question" style="font-size:18px;text-align:center">
+        本测试包含<span class="highlight"> 三个阶段 </span>共 9 个环节<br>
+        请确保处于<span class="highlight">安静、专注</span>的状态下作答
+      </div>
+      <div style="color:var(--muted);font-size:13px;letter-spacing:1px;margin-bottom:36px;line-height:1.8">
+        ⚠️ 部分环节有时间限制<br>超时将自动退回上一题
+      </div>
+      <button class="next-btn" onclick="nextStep()">开始测试 →</button>
+    </div>
+  `);
+}
+
+// ===================== WEIRD QUESTION =====================
+
+function renderWeirdQuestion(idx) {
+  const q = weirdQuestions[idx];
+  const dotIndex = idx;
+  const html = `
+    ${buildProgressDots(dotIndex)}
+    <div class="score-display">得分 ${score}pt</div>
+    <h1>阶段一 · 深度感知</h1>
+    <div class="question">${q.q}</div>
+    <div class="choices" id="choices">
+      ${q.options.map((opt, i) => `
+        <button class="choice-btn" onclick="selectWeird(${idx}, ${i})">
+          <span class="choice-label">${String.fromCharCode(65+i)}</span>
+          <span class="choice-text">${opt}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+  render(html);
+}
+
+function selectWeird(qIdx, optIdx) {
+  score += weirdQuestions[qIdx].scores[optIdx];
+  // flash selected
+  const btns = document.querySelectorAll('.choice-btn');
+  if (btns[optIdx]) {
+    btns[optIdx].style.borderColor = 'var(--accent)';
+    btns[optIdx].style.background = 'rgba(232,160,32,0.1)';
+  }
+  setTimeout(() => nextStep(), 400);
+}
+
+// ===================== NONSENSE =====================
+
+function renderNonsense() {
+  let idx = 0;
+  const html = `
+    ${buildProgressDots(4)}
+    <h1>阶段二 · 信息校准</h1>
+    <div class="question" style="text-align:center;color:var(--muted);font-size:16px">
+      正在根据你的回答进行<span class="highlight">深度神经同步</span>，请稍候…
+    </div>
+    <div class="nonsense-display" id="nonsenseDisplay">${nonsenseItems[0]}</div>
+    <div class="nonsense-sub">系统校准中 — 请凝视符号</div>
+    <button class="next-btn" id="continueBtn" style="opacity:0;pointer-events:none" onclick="nextStep()">校准完成，继续 →</button>
+  `;
+  render(html, true);
+
+  // Cycle nonsense symbols
+  setTimeout(() => {
+    let cycles = 0;
+    const interval = setInterval(() => {
+      idx = (idx + 1) % nonsenseItems.length;
+      const el = document.getElementById('nonsenseDisplay');
+      if (el) el.textContent = nonsenseItems[idx];
+      cycles++;
+      if (cycles >= 16) {
+        clearInterval(interval);
+        const btn = document.getElementById('continueBtn');
+        if (btn) {
+          btn.style.opacity = '1';
+          btn.style.pointerEvents = 'auto';
+          btn.textContent = '✓ 校准完成，继续 →';
+        }
+      }
+    }, 300);
+  }, 400);
+}
+
+// ===================== RAPID FIRE =====================
+
+function renderRapid(idx) {
+  const q = rapidQuestions[idx];
+  const dotIndex = 5 + idx;
+
+  if (q.isFinal) {
+    renderFinalQuestion();
+    return;
+  }
+
+  const timeLimit = q.timeLimit;
+  let timeLeft = timeLimit;
+
+  const html = `
+    ${buildProgressDots(dotIndex)}
+    <h1>阶段三 · 极速感知</h1>
+    <div class="timer-container">
+      <div class="timer-label">
+        <span>⚡ 快速回答</span>
+        <span id="timerLabel">${timeLimit}s</span>
+      </div>
+      <div class="timer-bar">
+        <div class="timer-fill" id="timerFill" style="width:100%"></div>
+      </div>
+    </div>
+    <div class="question" style="font-size:28px;font-weight:900;text-align:center;margin-bottom:28px">${q.q}</div>
+    <div class="choices">
+      ${q.options.map((opt, i) => `
+        <button class="choice-btn" onclick="selectRapid(${idx}, ${i})" style="justify-content:center;text-align:center;font-size:18px;font-weight:700">
+          ${opt}
+        </button>
+      `).join('')}
+    </div>
+    <div class="warning-text" id="warnText">⚠ 超时将退回上一题</div>
+  `;
+  render(html, true);
+
+  // Show warning after render
+  setTimeout(() => {
+    const wt = document.getElementById('warnText');
+    if (wt) wt.classList.add('show');
+  }, 500);
+
+  // Timer
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const fill = document.getElementById('timerFill');
+    const label = document.getElementById('timerLabel');
+    if (!fill) { clearInterval(timerInterval); return; }
+    const pct = (timeLeft / timeLimit) * 100;
+    fill.style.width = pct + '%';
+    if (label) label.textContent = timeLeft + 's';
+    if (pct < 30) fill.classList.add('danger');
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      // Go back to previous rapid or last weird question
+      timeoutRapid(idx);
+    }
+  }, 1000);
+}
+
+function selectRapid(qIdx, optIdx) {
+  if (timerInterval) clearInterval(timerInterval);
+  setTimeout(() => nextStep(), 300);
+}
+
+function timeoutRapid(idx) {
+  // Shake card
+  card.classList.add('shake');
+  setTimeout(() => {
+    card.classList.remove('shake');
+    if (idx === 0) {
+      // Go back to last weird question
+      currentStep = phases.findIndex(p => p.type === 'rapid' && p.index === 0) - 1;
+      renderWeirdQuestion(3);
+    } else {
+      // Go back to previous rapid question
+      currentStep = phases.findIndex(p => p.type === 'rapid' && p.index === idx) - 1;
+      renderRapid(idx - 1);
+    }
+  }, 400);
+}
+
+// ===================== FINAL QUESTION =====================
+
+function renderFinalQuestion() {
+  const dotIndex = 8;
+  const html = `
+    ${buildProgressDots(dotIndex)}
+    <div class="final-question">
+      <h1>最终问题</h1>
+      <div class="emoji-display">🍗</div>
+      <div class="question" style="text-align:center;font-size:24px;font-weight:900">
+        你愿意请我吃<span class="highlight">疯狂星期四</span>吗？
+      </div>
+      <div style="color:var(--muted);font-size:13px;margin-top:-16px;margin-bottom:8px">（这是最后一题，请认真作答）</div>
+      <div class="final-choices" id="finalChoices">
+        <button class="yes-btn" onclick="selectYes()">愿意 🍗</button>
+        <button class="no-btn" id="noBtn" onclick="moveNoBtn()">不愿意</button>
+      </div>
+    </div>
+  `;
+  render(html, true);
+
+  // Position no button initially
+  setTimeout(() => {
+    const noBtn = document.getElementById('noBtn');
+    if (noBtn) {
+      noBtn.style.left = '60%';
+      noBtn.style.top = '70%';
+    }
+  }, 600);
+}
+
+function moveNoBtn() {
+  noBtnMoved++;
+  const noBtn = document.getElementById('noBtn');
+  if (!noBtn) return;
+  
+  const margin = 80;
+  const maxX = window.innerWidth - margin * 2;
+  const maxY = window.innerHeight - margin * 2;
+  const x = margin + Math.random() * maxX;
+  const y = margin + Math.random() * maxY;
+  
+  noBtn.style.left = x + 'px';
+  noBtn.style.top = y + 'px';
+  noBtn.style.transform = `rotate(${(Math.random()-0.5)*20}deg)`;
+
+  if (noBtnMoved === 3) {
+    noBtn.textContent = '别跑了行不行 😭';
+    noBtn.style.fontSize = '12px';
+  } else if (noBtnMoved === 6) {
+    noBtn.textContent = '你追不到的 🙃';
+    noBtn.style.fontSize = '11px';
+  } else if (noBtnMoved >= 10) {
+    noBtn.style.opacity = '0.3';
+    noBtn.textContent = '…';
+  }
+}
+
+function selectYes() {
+  currentStep = phases.length - 2; // jump to end
+  nextStep();
+}
+
+// ===================== END PAGE =====================
+
+function renderEnd() {
+  clearInterval(timerInterval);
+  const html = `
+    <div class="final-page">
+      <span class="big-emoji">🎉</span>
+      <h2>恭喜你通过测试！</h2>
+      <p>
+        经过九轮深度分析，<br>
+        系统判定你拥有<span style="color:var(--accent)">极高的慷慨指数</span>与<span style="color:var(--accent)">出色的朋友缘</span>。<br><br>
+        <strong style="color:var(--text);font-size:18px">疯狂星期四，V我50 🍗</strong><br><br>
+        <span style="font-size:13px;color:var(--muted)">测试结果仅供娱乐，但请款是认真的。</span>
+      </p>
+    </div>
+  `;
+  render(html, true);
+  setTimeout(launchConfetti, 400);
+}
+
+// ===================== CONFETTI =====================
+
+function launchConfetti() {
+  const container = document.getElementById('confettiContainer');
+  const colors = ['#e8a020', '#c0392b', '#f39c12', '#e74c3c', '#f1c40f', '#ffffff'];
+  
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.width = (6 + Math.random() * 8) + 'px';
+      piece.style.height = (6 + Math.random() * 8) + 'px';
+      piece.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      piece.style.animationDelay = '0s';
+      container.appendChild(piece);
+      setTimeout(() => piece.remove(), 4000);
+    }, i * 40);
+  }
+}
+
+// ===================== STEP MACHINE =====================
+
+function nextStep() {
+  currentStep++;
+  renderStep(currentStep);
+}
+
+function renderStep(step) {
+  if (step >= phases.length) return;
+  const phase = phases[step];
+  
+  if (timerInterval) clearInterval(timerInterval);
+
+  switch(phase.type) {
+    case 'intro': renderIntro(); break;
+    case 'question': renderWeirdQuestion(phase.index); break;
+    case 'nonsense': renderNonsense(); break;
+    case 'rapid': renderRapid(phase.index); break;
+    case 'final': renderFinalQuestion(); break;
+    case 'end': renderEnd(); break;
+  }
+}
+
+// ===================== BOOT =====================
+renderStep(0);
+</script>
+</body>
+</html>
